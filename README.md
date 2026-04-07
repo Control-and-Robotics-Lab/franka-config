@@ -46,6 +46,36 @@ print("pylibfranka", pylibfranka.__version__)
 PY
 ```
 
+## Build Configuration
+
+Recommended `libfranka-test` configure/build from this repository root:
+
+```bash
+conda activate franka
+cmake -S libfranka-test -B libfranka-test/cmake-build-release-franka \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DFranka_DIR="$CONDA_PREFIX/lib/cmake/Franka"
+cmake --build libfranka-test/cmake-build-release-franka
+```
+
+Direct run:
+
+```bash
+./libfranka-test/cmake-build-release-franka/libfranka_smoke_test 192.168.2.12
+```
+
+Equivalent one-shot build without activating the env:
+
+```bash
+conda run -n franka bash -lc '
+  cmake -S "$PWD/libfranka-test" \
+    -B /tmp/libfranka-test-build \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DFranka_DIR="$CONDA_PREFIX/lib/cmake/Franka" &&
+  cmake --build /tmp/libfranka-test-build
+'
+```
+
 ## Notes
 
 - `libfranka` is installed from `conda-forge`; `pylibfranka` is installed by Conda via the `pip:` section.
@@ -61,18 +91,18 @@ you need additional permissions.
 Quick check with `sudo`:
 
 ```bash
-sudo /home/yichangfeng/franka-conda/libfranka-test/cmake-build-release-franka/libfranka_smoke_test 192.168.2.12
+sudo ./libfranka-test/cmake-build-release-franka/libfranka_smoke_test <robot_ip>
 ```
 
-Recommended persistent setup for user `yichangfeng`:
+Recommended persistent setup for your Linux user:
 
 Create `/etc/security/limits.d/franka.conf` with:
 
 ```conf
-yichangfeng soft rtprio 99
-yichangfeng hard rtprio 99
-yichangfeng soft memlock unlimited
-yichangfeng hard memlock unlimited
+<your_username> soft rtprio 99
+<your_username> hard rtprio 99
+<your_username> soft memlock unlimited
+<your_username> hard memlock unlimited
 ```
 
 Then log out and log back in.
@@ -87,7 +117,7 @@ LimitMEMLOCK=infinity
 Optional capability-based setup:
 
 ```bash
-sudo setcap cap_sys_nice+ep /home/yichangfeng/franka-conda/libfranka-test/cmake-build-release-franka/libfranka_smoke_test
+sudo setcap cap_sys_nice+ep ./libfranka-test/cmake-build-release-franka/libfranka_smoke_test
 ```
 
 Check your current limits:

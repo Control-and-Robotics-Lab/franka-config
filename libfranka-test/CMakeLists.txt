@@ -2,22 +2,20 @@ cmake_minimum_required(VERSION 3.22)
 
 project(libfranka_smoke_test LANGUAGES CXX)
 
-# Keep dependent packages in the same Conda prefix as libfranka. Otherwise CMake can
-# mix the active env with the base Miniconda installation, which breaks libstdc++ at runtime.
+# Keep all C++ packages in the same Conda prefix as libfranka.
 if(DEFINED Franka_DIR AND EXISTS "${Franka_DIR}")
-  get_filename_component(_franka_cmake_root "${Franka_DIR}" DIRECTORY)
-  get_filename_component(_franka_lib_dir "${_franka_cmake_root}" DIRECTORY)
-  get_filename_component(_franka_prefix "${_franka_lib_dir}" DIRECTORY)
+  cmake_path(GET Franka_DIR PARENT_PATH _franka_cmake_dir)
+  cmake_path(GET _franka_cmake_dir PARENT_PATH _franka_lib_dir)
+  cmake_path(GET _franka_lib_dir PARENT_PATH FRANKA_PREFIX)
 elseif(DEFINED ENV{CONDA_PREFIX} AND EXISTS "$ENV{CONDA_PREFIX}/lib/cmake/Franka")
-  set(_franka_prefix "$ENV{CONDA_PREFIX}")
-  set(Franka_DIR "${_franka_prefix}/lib/cmake/Franka" CACHE PATH "Franka package directory" FORCE)
+  set(FRANKA_PREFIX "$ENV{CONDA_PREFIX}")
+  set(Franka_DIR "${FRANKA_PREFIX}/lib/cmake/Franka" CACHE PATH "Franka package directory" FORCE)
 endif()
 
-if(DEFINED _franka_prefix)
-  list(PREPEND CMAKE_PREFIX_PATH "${_franka_prefix}")
-
-  if(EXISTS "${_franka_prefix}/lib/cmake/fmt")
-    set(fmt_DIR "${_franka_prefix}/lib/cmake/fmt" CACHE PATH "fmt package directory" FORCE)
+if(DEFINED FRANKA_PREFIX)
+  list(PREPEND CMAKE_PREFIX_PATH "${FRANKA_PREFIX}")
+  if(EXISTS "${FRANKA_PREFIX}/lib/cmake/fmt")
+    set(fmt_DIR "${FRANKA_PREFIX}/lib/cmake/fmt" CACHE PATH "fmt package directory" FORCE)
   endif()
 endif()
 
@@ -31,12 +29,12 @@ target_compile_definitions(
   PRIVATE LIBFRANKA_PACKAGE_VERSION="0.20.5"
 )
 
-if(DEFINED _franka_prefix)
+if(DEFINED FRANKA_PREFIX)
   set_target_properties(
     libfranka_smoke_test
     PROPERTIES
-      BUILD_RPATH "${_franka_prefix}/lib"
-      INSTALL_RPATH "${_franka_prefix}/lib"
+      BUILD_RPATH "${FRANKA_PREFIX}/lib"
+      INSTALL_RPATH "${FRANKA_PREFIX}/lib"
   )
 
   # Force DT_RPATH instead of DT_RUNPATH so an IDE-injected LD_LIBRARY_PATH from
