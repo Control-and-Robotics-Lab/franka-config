@@ -1,38 +1,38 @@
 # franka-conda
 
-Portable Conda setup for:
+Minimal Conda setup for:
 - `libfranka`
 - `pylibfranka`
-
-Recommended model:
-- use `conda-forge` for the full dependency stack
-- use `conda-forge::libfranka`
-- install `pylibfranka` from the `libfranka` source tree with `pip --no-deps --no-build-isolation`
-
-This avoids the usual Conda/PyPI conflicts where `pip` tries to manage C++ dependencies.
+- `pinocchio`
 
 ## Files
 
-- `environment-franka.yml`
-  Recommended fresh environment.
-  Uses `conda-forge::libfranka=0.20.5`.
-
 - `environment.yml`
-  Alternative environment file with the same core stack.
+  Environment with pinned versions only for:
+  - `python=3.10.19`
+  - `cmake>=3.22,<4`
+  - `eigen=3.4.0`
+  - `libfranka=0.20.5`
+  - `pinocchio=3.9.0`
+  - `pylibfranka==0.20.5` via the `pip:` section
+  Other supporting packages remain included without version pins.
 
-- `install_libfranka_pylibfranka.sh`
-  Helper to install `pylibfranka` into the active env.
-  Optional: also source-build `libfranka` when `SOURCE_BUILD_LIBFRANKA=1`.
+- `install.sh`
+  Creates or updates the `franka` Conda env from `environment.yml`.
 
 ## Recommended Install
 
 From this repository root:
 
 ```bash
-conda env create -f environment-franka.yml
+./install.sh
 conda activate franka
+```
 
-./install_libfranka_pylibfranka.sh 0.20.5
+To update an existing env in place:
+
+```bash
+./install.sh
 ```
 
 Verify:
@@ -46,63 +46,61 @@ print("pylibfranka", pylibfranka.__version__)
 PY
 ```
 
-## Optional Source Build
+## Notes
 
-If you want to source-build `libfranka` instead of using `conda-forge::libfranka`:
+- `libfranka` is installed from `conda-forge`; `pylibfranka` is installed by Conda via the `pip:` section.
+- As of April 7, 2026, PyPI provides `pylibfranka 0.20.5` wheels for Python 3.10 on Linux.
+- `conda` will install the `pip:` section after resolving the Conda packages in `environment.yml`.
 
-```bash
-conda env create -f environment-franka.yml
-conda activate franka
-SOURCE_BUILD_LIBFRANKA=1 ./install_libfranka_pylibfranka.sh 0.20.5
-```
+## Realtime Scheduling
 
-The script:
-- clones `libfranka`
-- optionally builds and installs `libfranka` into `$CONDA_PREFIX`
-- installs `pylibfranka` into the active env
-- adds Conda activation hooks for `Franka_DIR`, `CMAKE_PREFIX_PATH`, `PKG_CONFIG_PATH`, and `LD_LIBRARY_PATH`
+`libfranka` and `pylibfranka` may try to enable Linux realtime scheduling. If the OS denies that,
+you can still connect with the fallback ignore mode in these tests, but for full realtime behavior
+you need additional permissions.
 
-## Rebuild
-
-For a local rebuild in the `franka` env:
+Quick check with `sudo`:
 
 ```bash
-conda activate franka
-./install_libfranka_pylibfranka.sh 0.20.5
+sudo /home/yichangfeng/franka-conda/libfranka-test/cmake-build-release-franka/libfranka_smoke_test 192.168.2.12
 ```
 
-If you need a full source rebuild of both layers:
+Recommended persistent setup for user `yichangfeng`:
+
+Create `/etc/security/limits.d/franka.conf` with:
+
+```conf
+yichangfeng soft rtprio 99
+yichangfeng hard rtprio 99
+yichangfeng soft memlock unlimited
+yichangfeng hard memlock unlimited
+```
+
+Then log out and log back in.
+
+If you launch through `systemd`, also allow realtime there:
+
+```ini
+LimitRTPRIO=99
+LimitMEMLOCK=infinity
+```
+
+Optional capability-based setup:
 
 ```bash
-conda activate franka
-SOURCE_BUILD_LIBFRANKA=1 ./install_libfranka_pylibfranka.sh 0.20.5
+sudo setcap cap_sys_nice+ep /home/yichangfeng/franka-conda/libfranka-test/cmake-build-release-franka/libfranka_smoke_test
 ```
 
-## Practical Notes
-
-- Do not use plain `pip install pylibfranka` in these envs.
-  That can pull a second dependency stack and break the Conda-managed one.
-
-- `conda-forge::libfranka` does not include `pylibfranka`.
-  The Python bindings still need a separate source install.
-
-- If you upgrade the Pinocchio / Boost stack, rerun:
+Check your current limits:
 
 ```bash
-conda activate franka
-./install_libfranka_pylibfranka.sh 0.20.5
+ulimit -r
+ulimit -l
 ```
 
-- Prefer running examples without `sudo`.
-  If you must use `sudo`, preserve the env:
+## Test Folders
 
-```bash
-sudo -E ./your_binary <robot_ip>
-```
+- `libfranka-test/`
+  Minimal CMake-based C++ smoke test for `libfranka`, with an optional live `readOnce()` check.
 
-## Recommended Result
-
-For maximum stability, the target state is:
-- `libfranka` from `conda-forge`
-- Pinocchio stack from `conda-forge`
-- `pylibfranka` as the only source-installed package
+- `pylibfranka-test/`
+  Minimal Python smoke test for `pylibfranka`, with an optional live `read_once()` check.

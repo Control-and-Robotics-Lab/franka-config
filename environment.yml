@@ -10,18 +10,19 @@ dependencies:
   - make
   - pkg-config
   - cxx-compiler
-  - numpy=2.2.6
+  - numpy
   - eigen=3.4.0
   - poco
   - fmt
+  - libfranka=0.20.5
   - pinocchio=3.9.0
-  - eigenpy=3.12.0
-  - hpp-fcl=3.0.2
-  - coal=3.0.2
-  - urdfdom=5.1.0
-  - casadi=3.7.0
-  - libboost=1.88.0
-  - libboost-devel=1.88.0
+  - eigenpy
+  - hpp-fcl
+  - coal
+  - urdfdom
+  - casadi
+  - libboost
+  - libboost-devel
   - pybind11
   - build
   - exceptiongroup
@@ -31,3 +32,5 @@ dependencies:
   - setuptools
   - setuptools-scm
   - wheel
+  - pip:
+      - pylibfranka==0.20.5

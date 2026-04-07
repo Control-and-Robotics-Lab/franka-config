@@ -3,5 +3,11 @@
   <component name="Black">
     <option name="sdkName" value="franka-fci-5.9.2" />
   </component>
+  <component name="CMakePythonSetting">
+    <option name="pythonIntegrationState" value="YES" />
+  </component>
+  <component name="CMakeWorkspace" PROJECT_DIR="$PROJECT_DIR$/libfranka-test">
+    <contentRoot DIR="$PROJECT_DIR$" />
+  </component>
   <component name="WestSettings">{}</component>
 </project>
