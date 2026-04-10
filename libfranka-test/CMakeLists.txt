@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.22)
 
-project(libfranka_smoke_test LANGUAGES CXX)
+project(test_libfranka LANGUAGES CXX)
 
 # Keep all C++ packages in the same Conda prefix as libfranka.
 if(DEFINED Franka_DIR AND EXISTS "${Franka_DIR}")
@@ -21,17 +21,17 @@ endif()
 
 find_package(Franka 0.20.5 CONFIG REQUIRED)
 
-add_executable(libfranka_smoke_test main.cpp)
-target_link_libraries(libfranka_smoke_test PRIVATE Franka::Franka)
-target_compile_features(libfranka_smoke_test PRIVATE cxx_std_17)
+add_executable(test_libfranka test_libfranka.cpp)
+target_link_libraries(test_libfranka PRIVATE Franka::Franka)
+target_compile_features(test_libfranka PRIVATE cxx_std_17)
 target_compile_definitions(
-  libfranka_smoke_test
+  test_libfranka
   PRIVATE LIBFRANKA_PACKAGE_VERSION="0.20.5"
 )
 
 if(DEFINED FRANKA_PREFIX)
   set_target_properties(
-    libfranka_smoke_test
+    test_libfranka
     PROPERTIES
       BUILD_RPATH "${FRANKA_PREFIX}/lib"
       INSTALL_RPATH "${FRANKA_PREFIX}/lib"
@@ -39,5 +39,5 @@ if(DEFINED FRANKA_PREFIX)
 
   # Force DT_RPATH instead of DT_RUNPATH so an IDE-injected LD_LIBRARY_PATH from
   # the base Miniconda install cannot override the franka env runtime libraries.
-  target_link_options(libfranka_smoke_test PRIVATE "-Wl,--disable-new-dtags")
+  target_link_options(test_libfranka PRIVATE "-Wl,--disable-new-dtags")
 endif()

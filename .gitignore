@@ -85,5 +85,8 @@ _deps/
 *.orig
 *.rej
 
+# Local credentials
+credentials.local.txt
+
 # libfranka source builds
 src/
