@@ -2,8 +2,6 @@
 
 ## FCI Setup
 
-Credential values are intentionally omitted from this document. Store local credentials in `credentials.local.txt` and keep that file untracked. Use `credentials.example.txt` as the template.
-
 ### FR3 Robot 1
 
 #### Accounts
